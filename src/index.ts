@@ -198,45 +198,72 @@ async function triggerWebhook(item: ScheduleItem): Promise<WebhookResult> {
 		console.log(
 			`[${new Date().toISOString()}] Triggering webhook for: ${item.title}`,
 		);
+		console.log(`[${new Date().toISOString()}] Target URL: ${url}`);
 
-		const response = await fetch(url, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				trigger: "scheduler",
-				item_id: item.id,
-				title: item.title,
-				day_of_week: item.day_of_week,
-				time: item.time,
-			}),
-		});
+		const controller = new AbortController();
+		const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-		if (!response.ok) {
-			const errorText = await response.text();
-			console.error(
-				`Failed to trigger webhook. Status: ${response.status}, Response: ${errorText}`,
+		try {
+			const response = await fetch(url, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					trigger: "scheduler",
+					item_id: item.id,
+					title: item.title,
+					day_of_week: item.day_of_week,
+					time: item.time,
+				}),
+				signal: controller.signal,
+			});
+
+			clearTimeout(timeoutId);
+
+			if (!response.ok) {
+				const errorText = await response.text();
+				console.error(
+					`Failed to trigger webhook. Status: ${response.status}, Response: ${errorText}`,
+				);
+				return {
+					success: false,
+					message: `HTTP ${response.status}: ${errorText}`,
+				};
+			}
+
+			console.log(
+				`[${new Date().toISOString()}] Successfully triggered: ${item.title}`,
 			);
 			return {
-				success: false,
-				message: `HTTP ${response.status}: ${errorText}`,
+				success: true,
+				message: "Webhook triggered successfully",
 			};
+		} catch (fetchError) {
+			clearTimeout(timeoutId);
+			throw fetchError;
 		}
-
-		console.log(
-			`[${new Date().toISOString()}] Successfully triggered: ${item.title}`,
-		);
-		return {
-			success: true,
-			message: "Webhook triggered successfully",
-		};
 	} catch (error) {
 		const errorMessage = error instanceof Error ? error.message : String(error);
 		console.error(`Error triggering webhook: ${errorMessage}`);
+		console.error("Full error:", error);
+
+		// Provide more helpful error messages
+		let userMessage = errorMessage;
+		if (
+			errorMessage.includes("fetch failed") ||
+			errorMessage.includes("ENOTFOUND")
+		) {
+			userMessage = `Cannot connect to ${HOME_ASSISTANT_URL}. Check that the hostname resolves and Home Assistant is running.`;
+		} else if (errorMessage.includes("ECONNREFUSED")) {
+			userMessage = `Connection refused to ${HOME_ASSISTANT_URL}. Check that Home Assistant is running on the correct port.`;
+		} else if (errorMessage.includes("abort")) {
+			userMessage = `Connection timeout to ${HOME_ASSISTANT_URL}. Home Assistant may be unreachable.`;
+		}
+
 		return {
 			success: false,
-			message: errorMessage,
+			message: userMessage,
 		};
 	}
 }

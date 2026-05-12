@@ -55,7 +55,7 @@ affinity: {}
 
 # Environment variables
 env:
-  HA_URL: "http://home-assistant:31913"
+  HA_URL: "http://home-assistant.local:31013"
   # WEBHOOK_ID should be set during deployment via TrueNAS UI
   WEBHOOK_ID: ""
 
