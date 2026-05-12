@@ -291,8 +291,7 @@ async function triggerWebhook(item: ScheduleItem): Promise<WebhookResult> {
 					description: item.description,
 					day_of_week: item.day_of_week,
 					time: item.time,
-					// Callback URL for Home Assistant to mark task complete
-					callback_url: `${SERVER_URL}/api/callback/complete/${item.id}`,
+
 				}),
 				signal: controller.signal,
 			});

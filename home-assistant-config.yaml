@@ -57,6 +57,8 @@ automation:
         value_template: "{{ trigger.event.data.action.startswith('COMPLETE_TASK_') }}"
     action:
       - service: rest_command.weekly_reminders_mark_complete
+        data:
+          item_id: "{{ trigger.event.data.action.replace('COMPLETE_TASK_', '') }}"
       
       # Dismiss the notification after marking complete
       - service: notify.mobile_app_YOUR_DEVICE  # Replace with your device name
@@ -68,7 +70,7 @@ automation:
 # REST command to call back to WeeklyReminders server
 rest_command:
   weekly_reminders_mark_complete:
-    url: "{{ trigger.json.callback_url }}"
+    url: "http://YOUR_SERVER_URL:32123/api/callback/complete/{{ item_id }}"  # Replace YOUR_SERVER_URL with your server hostname/IP
     method: POST
     content_type: "application/json"
     timeout: 10
