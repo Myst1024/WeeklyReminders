@@ -23,10 +23,18 @@ service:
   type: NodePort
   port: 6789
   targetPort: 6789
-  nodePort: 6789
+  nodePort: 32123
 
 ingress:
   enabled: false
+
+# Persistent storage for schedule.json
+persistence:
+  enabled: true
+  storageClass: ""  # Use default storage class
+  accessMode: ReadWriteOnce
+  size: 1Gi
+  mountPath: /app
 
 resources:
   limits:
