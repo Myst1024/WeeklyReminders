@@ -275,6 +275,42 @@ In TrueNAS UI:
 - Verify the HA_URL environment variable is set correctly in the TrueNAS App settings
 - Check the Kubernetes pod logs for connection errors
 
+## Actionable Notifications (Optional)
+
+Enable interactive notifications that let you mark tasks complete by tapping them on your phone.
+
+### How It Works
+
+1. Task triggers (manually or scheduled) → sends webhook to Home Assistant → resets task to "incomplete"
+2. Home Assistant sends actionable notification to your phone (with "Mark Complete" button)
+3. You tap the button → Home Assistant calls back to WeeklyReminders server → task shows green checkmark
+
+### Configuration
+
+**1. Add SERVER_URL environment variable:**
+
+When deploying (Custom App or Helm), add an additional environment variable:
+- `SERVER_URL` = URL that Home Assistant can use to reach this server
+  - Docker/K8s: `http://weekly-reminders:32123`
+  - Local dev: `http://localhost:32123`
+  - By IP: `http://192.168.1.100:32123`
+
+**2. Configure Home Assistant automations:**
+
+Copy the automations from `home-assistant-config.yaml` into your Home Assistant configuration:
+- Replace `YOUR_WEBHOOK_ID_HERE` with your actual webhook ID
+- Replace `YOUR_DEVICE` with your mobile device name (e.g., `mobile_app_iphone`)
+
+Find your device name: Home Assistant → Developer Tools → Services → search "notify.mobile_app"
+
+**3. Task Completion in UI:**
+
+Each task card has a checkmark button in the top-right:
+- **Green** = completed
+- **Gray** = incomplete
+- Click to toggle, or tap the phone notification to mark complete
+- Triggering a task resets it to incomplete
+
 ## Next Steps
 
 1. Test locally: `bun src/index.ts`
@@ -283,8 +319,9 @@ In TrueNAS UI:
 4. Make sure the ghcr.io package is public (see section 2)
 5. **Verify image exists:** GitHub profile → **Packages** → confirm `weeklyreminders` package exists with `main` tag
 6. Deploy to TrueNAS using **Option A** (Custom App) or **Option B** (Helm - recommended)
-7. Configure environment variables: `HA_URL` and `WEBHOOK_ID`
+7. Configure environment variables: `HA_URL`, `WEBHOOK_ID`, and optionally `SERVER_URL`
 8. **Set up persistent storage** (host path to `/app/data`)
 9. Configure your Home Assistant webhook automation (see section 3)
-10. Access the UI at `http://truenas-ip:32123`
-11. Create tasks and test the webhook triggers!
+10. (Optional) Configure actionable notifications for interactive task completion
+11. Access the UI at `http://truenas-ip:32123`
+12. Create tasks and test the webhook triggers!

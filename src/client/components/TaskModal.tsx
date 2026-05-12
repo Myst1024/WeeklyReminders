@@ -17,13 +17,13 @@ import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 
 const DAYS = [
-	"Sunday",
 	"Monday",
 	"Tuesday",
 	"Wednesday",
 	"Thursday",
 	"Friday",
 	"Saturday",
+	"Sunday",
 ];
 
 interface TaskModalProps {
@@ -85,6 +85,7 @@ export function TaskModal({
 				description,
 				time,
 				enabled,
+				completed: false,
 			});
 			onClose();
 		} catch (err) {

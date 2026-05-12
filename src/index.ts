@@ -5,7 +5,8 @@ import type { ScheduleData, ScheduleItem, WebhookResult } from "./types";
 
 const app = express();
 const PORT = process.env.PORT || 32123;
-const HOME_ASSISTANT_URL = process.env.HA_URL || "http://homeassistant.local:31013";
+const HOME_ASSISTANT_URL =
+	process.env.HA_URL || "http://homeassistant.local:31013";
 const WEBHOOK_ID = process.env.WEBHOOK_ID || "";
 // URL that Home Assistant can use to reach this server
 const SERVER_URL = process.env.SERVER_URL || `http://localhost:${PORT}`;
@@ -126,7 +127,8 @@ app.post("/api/items", (req, res) => {
 app.put("/api/items/:id", (req, res) => {
 	try {
 		const id = Number.parseInt(req.params.id);
-		const { day_of_week, title, description, time, enabled, completed } = req.body;
+		const { day_of_week, title, description, time, enabled, completed } =
+			req.body;
 
 		const data = loadData();
 		const itemIndex = data.items.findIndex((i) => i.id === id);

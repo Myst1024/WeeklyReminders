@@ -140,7 +140,7 @@ function App() {
 					<div className="flex items-center justify-between">
 						<div>
 							<h1 className="text-3xl font-bold text-foreground">
-							📅 Weekly Reminders
+								📅 Weekly Reminders
 							</h1>
 							<p className={`mt-2 text-sm ${statusColor}`}>{statusText}</p>
 						</div>

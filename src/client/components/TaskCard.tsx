@@ -24,7 +24,13 @@ function formatTime12Hour(time24: string): string {
 	});
 }
 
-export function TaskCard({ item, onEdit, onDelete, onTrigger, onToggleComplete }: TaskCardProps) {
+export function TaskCard({
+	item,
+	onEdit,
+	onDelete,
+	onTrigger,
+	onToggleComplete,
+}: TaskCardProps) {
 	return (
 		<div
 			className={cn(
@@ -34,7 +40,9 @@ export function TaskCard({ item, onEdit, onDelete, onTrigger, onToggleComplete }
 		>
 			<div className="mb-2 flex items-start justify-between gap-2">
 				<div className="flex-1">
-					<div className="text-sm font-medium text-primary">{formatTime12Hour(item.time)}</div>
+					<div className="text-sm font-medium text-primary">
+						{formatTime12Hour(item.time)}
+					</div>
 					<div className="text-sm font-semibold text-foreground">
 						{item.title}
 					</div>

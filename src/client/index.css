@@ -138,12 +138,12 @@
 	body {
 		letter-spacing: var(--tracking-normal);
 	}
-	
+
 	/* Style time picker controls */
 	input[type="time"] {
 		color-scheme: dark;
 	}
-	
+
 	input[type="time"]::-webkit-calendar-picker-indicator {
 		cursor: pointer;
 	}
@@ -178,8 +178,7 @@
 
 	/* Column texture */
 	.column-texture {
-		background-image: 
-			repeating-linear-gradient(
+		background-image: repeating-linear-gradient(
 				45deg,
 				transparent,
 				transparent 10px,
