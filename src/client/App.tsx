@@ -7,6 +7,7 @@ import {
 	createItem,
 	deleteItem,
 	fetchItems,
+	toggleComplete,
 	triggerItem,
 	updateItem,
 } from "./api";
@@ -83,6 +84,8 @@ function App() {
 	const handleTriggerTask = async (id: number) => {
 		try {
 			const result = await triggerItem(id);
+			// Reload data to reflect the reset completed state
+			await loadData();
 			if (result.success) {
 				alert("Task triggered successfully!");
 			} else {
@@ -91,6 +94,17 @@ function App() {
 		} catch (err) {
 			alert(
 				`Error triggering task: ${err instanceof Error ? err.message : "Unknown error"}`,
+			);
+		}
+	};
+
+	const handleToggleComplete = async (id: number) => {
+		try {
+			await toggleComplete(id);
+			await loadData();
+		} catch (err) {
+			setError(
+				err instanceof Error ? err.message : "Failed to toggle completion",
 			);
 		}
 	};
@@ -161,6 +175,7 @@ function App() {
 						onEditTask={handleEditTask}
 						onDeleteTask={handleDeleteTask}
 						onTriggerTask={handleTriggerTask}
+						onToggleComplete={handleToggleComplete}
 						isLoading={isSaving}
 					/>
 				)}

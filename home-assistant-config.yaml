@@ -1,0 +1,126 @@
+# Home Assistant Actionable Notification Configuration
+# 
+# Add this automation to your Home Assistant configuration.yaml or automations.yaml
+# This handles incoming webhooks from WeeklyReminders and sends actionable notifications
+
+automation:
+  - id: weekly_reminders_webhook
+    alias: "Weekly Reminders - Send Actionable Notification"
+    description: "Receives webhook from WeeklyReminders app and sends actionable notification"
+    trigger:
+      - platform: webhook
+        webhook_id: "YOUR_WEBHOOK_ID_HERE"  # Replace with your actual WEBHOOK_ID
+    action:
+      - service: notify.mobile_app_YOUR_DEVICE  # Replace with your device name
+        data:
+          title: "{{ trigger.json.title }}"
+          message: >
+            {% if trigger.json.description %}
+              {{ trigger.json.description }}
+            {% else %}
+              Scheduled reminder
+            {% endif %}
+          data:
+            # Actions that appear on the notification
+            actions:
+              - action: "COMPLETE_TASK_{{ trigger.json.item_id }}"
+                title: "Mark Complete"
+                icon: "sfsymbols:checkmark.circle"
+              - action: "DISMISS_TASK_{{ trigger.json.item_id }}"
+                title: "Dismiss"
+                icon: "sfsymbols:xmark"
+            
+            # Make notification persistent until acted upon (optional)
+            # persistent: true
+            
+            # Add more notification options as needed
+            tag: "reminder_{{ trigger.json.item_id }}"
+            group: "weekly-reminders"
+            
+            # iOS specific options
+            push:
+              interruption-level: time-sensitive
+            
+            # Android specific options
+            channel: reminders
+            importance: high
+            vibrationPattern: "100, 200, 100"
+
+  - id: weekly_reminders_complete
+    alias: "Weekly Reminders - Handle Complete Action"
+    description: "Calls back to WeeklyReminders server when task is marked complete"
+    trigger:
+      - platform: event
+        event_type: mobile_app_notification_action
+        event_data:
+          # This pattern matches any COMPLETE_TASK_* action
+          action: "COMPLETE_TASK"  # Will match actions starting with this
+    condition:
+      - condition: template
+        value_template: "{{ trigger.event.data.action.startswith('COMPLETE_TASK_') }}"
+    action:
+      - service: rest_command.weekly_reminders_mark_complete
+      
+      # Dismiss the notification after marking complete
+      - service: notify.mobile_app_YOUR_DEVICE  # Replace with your device name
+        data:
+          message: "clear_notification"
+          data:
+            tag: "reminder_{{ trigger.event.data.action.replace('COMPLETE_TASK_', '') }}"
+
+  - id: weekly_reminders_dismiss
+    alias: "Weekly Reminders - Handle Dismiss Action"
+    description: "Calls back to WeeklyReminders server when task is dismissed"
+    trigger:
+      - platform: event
+        event_type: mobile_app_notification_action
+        event_data:
+          action: "DISMISS_TASK"  # Will match actions starting with this
+    condition:
+      - condition: template
+        value_template: "{{ trigger.event.data.action.startswith('DISMISS_TASK_') }}"
+    action:
+      - service: rest_command.weekly_reminders_mark_complete
+        data:
+          item_id: >
+            {{ trigger.event.data.action.replace('DISMISS_TA
+  weekly_reminders_mark_complete:
+    url: "{{ trigger.json.callback_url }}"
+    method: POST
+    content_type: "application/json"
+    timeout: 10
+
+---
+
+# Alternative: Simpler version that marks complete on any tap
+# Uncomment this and comment out the above if you want tapping the notification
+# itself to mark it complete (no action buttons needed)
+
+# automation:
+#   - id: weekly_reminders_webhook_simple
+#     alias: "Weekly Reminders - Send Notification (Simple)"
+#     trigger:
+#       - platform: webhook
+#         webhook_id: "YOUR_WEBHOOK_ID_HERE"
+#     action:
+#       - service: notify.mobile_app_YOUR_DEVICE
+#         data:
+#           title: "{{ trigger.json.title }}"
+#           message: "{{ trigger.json.description or 'Tap to complete' }}"
+#           data:
+#             tag: "reminder_{{ trigger.json.item_id }}"
+#             clickAction: "COMPLETE_TASK_{{ trigger.json.item_id }}"
+#
+#   - id: weekly_reminders_tap_to_complete
+#     alias: "Weekly Reminders - Tap to Complete"
+#     trigger:
+#       - platform: event
+#         event_type: mobile_app_notification_action
+#     condition:
+#       - condition: template
+#         value_template: "{{ trigger.event.data.action.startswith('COMPLETE_TASK_') }}"
+#     action:
+#       - service: rest_command.weekly_reminders_mark_complete
+#         data:
+#           item_id: >
+#             {{ trigger.event.data.action.replace('COMPLETE_TASK_', '') }}

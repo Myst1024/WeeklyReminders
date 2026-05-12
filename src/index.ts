@@ -5,8 +5,10 @@ import type { ScheduleData, ScheduleItem, WebhookResult } from "./types";
 
 const app = express();
 const PORT = process.env.PORT || 32123;
-const HOME_ASSISTANT_URL = process.env.HA_URL || "http://home-assistant:31013";
+const HOME_ASSISTANT_URL = process.env.HA_URL || "http://homeassistant.local:31013";
 const WEBHOOK_ID = process.env.WEBHOOK_ID || "";
+// URL that Home Assistant can use to reach this server
+const SERVER_URL = process.env.SERVER_URL || `http://localhost:${PORT}`;
 
 // Data storage - use /app/data for persistence
 const dataDir = process.env.DATA_DIR || "/app/data";
@@ -28,7 +30,14 @@ function initializeData(): void {
 function loadData(): ScheduleData {
 	try {
 		const raw = fs.readFileSync(dbPath, "utf-8");
-		return JSON.parse(raw);
+		const data = JSON.parse(raw);
+		// Ensure backward compatibility: add completed field if missing
+		for (const item of data.items) {
+			if (item.completed === undefined) {
+				item.completed = false;
+			}
+		}
+		return data;
 	} catch {
 		return { items: [], nextId: 1 };
 	}
@@ -97,6 +106,7 @@ app.post("/api/items", (req, res) => {
 			description: description || "",
 			time: time || "08:00",
 			enabled: enabled !== false,
+			completed: false,
 			created_at: now,
 			updated_at: now,
 		};
@@ -116,7 +126,7 @@ app.post("/api/items", (req, res) => {
 app.put("/api/items/:id", (req, res) => {
 	try {
 		const id = Number.parseInt(req.params.id);
-		const { day_of_week, title, description, time, enabled } = req.body;
+		const { day_of_week, title, description, time, enabled, completed } = req.body;
 
 		const data = loadData();
 		const itemIndex = data.items.findIndex((i) => i.id === id);
@@ -133,6 +143,7 @@ app.put("/api/items/:id", (req, res) => {
 		if (description !== undefined) existing.description = description;
 		if (time !== undefined) existing.time = time;
 		if (enabled !== undefined) existing.enabled = enabled;
+		if (completed !== undefined) existing.completed = completed;
 		existing.updated_at = new Date().toISOString();
 
 		saveData(data);
@@ -175,11 +186,73 @@ app.post("/api/trigger/:id", async (req, res) => {
 			return res.status(404).json({ error: "Item not found" });
 		}
 
+		// Reset completed state when triggering
+		item.completed = false;
+		item.updated_at = new Date().toISOString();
+		saveData(data);
+
 		const result = await triggerWebhook(item);
 		res.json(result);
 	} catch (error) {
 		console.error("Error triggering webhook:", error);
 		res.status(500).json({ error: "Failed to trigger webhook" });
+	}
+});
+
+// Toggle completion state endpoint
+app.post("/api/items/:id/toggle-complete", async (req, res) => {
+	try {
+		const id = Number.parseInt(req.params.id);
+		const data = loadData();
+		const item = data.items.find((i) => i.id === id);
+
+		if (!item) {
+			return res.status(404).json({ error: "Item not found" });
+		}
+
+		// Toggle completed state
+		item.completed = !item.completed;
+		item.updated_at = new Date().toISOString();
+		saveData(data);
+
+		console.log(
+			`[${new Date().toISOString()}] Task ${id} completion toggled to ${item.completed}: ${item.title}`,
+		);
+		res.json(item);
+	} catch (error) {
+		console.error("Error toggling completion:", error);
+		res.status(500).json({ error: "Failed to toggle completion" });
+	}
+});
+
+// Callback endpoint for Home Assistant to mark task as complete
+app.post("/api/callback/complete/:id", async (req, res) => {
+	try {
+		const id = Number.parseInt(req.params.id);
+		console.log(
+			`[${new Date().toISOString()}] Received completion callback for task ${id}`,
+		);
+
+		const data = loadData();
+		const item = data.items.find((i) => i.id === id);
+
+		if (!item) {
+			console.error(`Task ${id} not found`);
+			return res.status(404).json({ error: "Task not found" });
+		}
+
+		// Mark the task as complete
+		item.completed = true;
+		item.updated_at = new Date().toISOString();
+		saveData(data);
+
+		console.log(
+			`[${new Date().toISOString()}] Task ${id} marked as complete: ${item.title}`,
+		);
+		res.json({ success: true, message: "Task marked as complete" });
+	} catch (error) {
+		console.error("Error handling completion callback:", error);
+		res.status(500).json({ error: "Failed to mark task as complete" });
 	}
 });
 
@@ -213,8 +286,11 @@ async function triggerWebhook(item: ScheduleItem): Promise<WebhookResult> {
 					trigger: "scheduler",
 					item_id: item.id,
 					title: item.title,
+					description: item.description,
 					day_of_week: item.day_of_week,
 					time: item.time,
+					// Callback URL for Home Assistant to mark task complete
+					callback_url: `${SERVER_URL}/api/callback/complete/${item.id}`,
 				}),
 				signal: controller.signal,
 			});
@@ -300,6 +376,10 @@ function checkAndTriggerTasks(): void {
 			// Only trigger once per scheduled time
 			if (lastChecked[item.id] !== itemKey && item.time === currentTime) {
 				lastChecked[item.id] = itemKey;
+				// Reset completed state before triggering
+				item.completed = false;
+				item.updated_at = new Date().toISOString();
+				saveData(data);
 				triggerWebhook(item).catch((error) => {
 					console.error(`Failed to trigger item ${item.id}:`, error);
 				});
@@ -332,6 +412,7 @@ const server = app.listen(PORT, () => {
 		`[${new Date().toISOString()}] Server running on http://localhost:${PORT}`,
 	);
 	console.log(`Home Assistant URL: ${HOME_ASSISTANT_URL}`);
+	console.log(`Server callback URL: ${SERVER_URL}`);
 	console.log(`Webhook ID: ${WEBHOOK_ID || "(not configured)"}`);
 	startScheduler();
 });

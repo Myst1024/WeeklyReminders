@@ -58,6 +58,9 @@ env:
   HA_URL: "http://home-assistant.local:31013"
   # WEBHOOK_ID should be set during deployment via TrueNAS UI
   WEBHOOK_ID: ""
+  # SERVER_URL is the URL Home Assistant will use to callback to this server
+  # Default uses the Kubernetes service name (weekly-reminders) + port
+  SERVER_URL: "http://192.168.1.11:32123"
 
 # For sensitive values, use secrets instead
 envFromSecret: {}

@@ -60,6 +60,14 @@ export async function triggerItem(id: number): Promise<WebhookResult> {
 	return response.json();
 }
 
+export async function toggleComplete(id: number): Promise<ScheduleItem> {
+	const response = await fetch(`/api/items/${id}/toggle-complete`, {
+		method: "POST",
+	});
+	if (!response.ok) throw new Error("Failed to toggle completion");
+	return response.json();
+}
+
 export async function checkHealth(): Promise<HealthStatus> {
 	const response = await fetch("/api/health");
 	if (!response.ok) throw new Error("Failed to check health");

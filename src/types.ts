@@ -9,6 +9,7 @@ export interface ScheduleItem {
 	description: string;
 	time: string;
 	enabled: boolean;
+	completed: boolean;
 	created_at: string;
 	updated_at: string;
 }

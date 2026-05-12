@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Temporal } from "@js-temporal/polyfill";
-import React from "react";
+import { Check } from "lucide-react";
 
 import type { ScheduleItem } from "@/api";
 
@@ -11,6 +11,7 @@ interface TaskCardProps {
 	onEdit: (item: ScheduleItem) => void;
 	onDelete: (id: number) => void;
 	onTrigger: (id: number) => void;
+	onToggleComplete: (id: number) => void;
 }
 
 function formatTime12Hour(time24: string): string {
@@ -23,7 +24,7 @@ function formatTime12Hour(time24: string): string {
 	});
 }
 
-export function TaskCard({ item, onEdit, onDelete, onTrigger }: TaskCardProps) {
+export function TaskCard({ item, onEdit, onDelete, onTrigger, onToggleComplete }: TaskCardProps) {
 	return (
 		<div
 			className={cn(
@@ -31,8 +32,8 @@ export function TaskCard({ item, onEdit, onDelete, onTrigger }: TaskCardProps) {
 				!item.enabled && "opacity-60",
 			)}
 		>
-			<div className="mb-2 flex items-start justify-between">
-				<div>
+			<div className="mb-2 flex items-start justify-between gap-2">
+				<div className="flex-1">
 					<div className="text-sm font-medium text-primary">{formatTime12Hour(item.time)}</div>
 					<div className="text-sm font-semibold text-foreground">
 						{item.title}
@@ -43,6 +44,19 @@ export function TaskCard({ item, onEdit, onDelete, onTrigger }: TaskCardProps) {
 						</div>
 					)}
 				</div>
+				<button
+					type="button"
+					onClick={() => onToggleComplete(item.id)}
+					className={cn(
+						"flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center transition-all",
+						item.completed
+							? "bg-green-500 hover:bg-green-600 text-white"
+							: "bg-gray-200 hover:bg-gray-300 text-gray-400",
+					)}
+					title={item.completed ? "Mark as incomplete" : "Mark as complete"}
+				>
+					<Check className="h-5 w-5" />
+				</button>
 			</div>
 			<div className="flex gap-2">
 				<Button

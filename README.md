@@ -28,7 +28,13 @@ The app is configured via environment variables:
 |----------|-------------|---------|
 | `HA_URL` | Home Assistant URL | `http://home-assistant:8123` |
 | `WEBHOOK_ID` | Home Assistant webhook ID | (optional - required for automation triggering) |
-| `PORT` | Server port | `3000` |
+| `SERVER_URL` | URL Home Assistant uses to callback to this server | `http://localhost:32123` |
+| `PORT` | Server port | `32123` |
+
+**Note**: For actionable notifications (tasks that complete when you tap them), set `SERVER_URL` to a hostname/IP that Home Assistant can reach. For example:
+- Docker/Kubernetes: `http://weekly-reminders:32123`
+- Local dev: `http://localhost:32123`
+- Specific IP: `http://192.168.1.100:32123`
 
 ### Setting up a Webhook Trigger in Home Assistant
 
