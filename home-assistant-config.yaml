@@ -49,9 +49,6 @@ automation:
     trigger:
       - platform: event
         event_type: mobile_app_notification_action
-        event_data:
-          # This pattern matches any COMPLETE_TASK_* action
-          action: "COMPLETE_TASK"  # Will match actions starting with this
     condition:
       - condition: template
         value_template: "{{ trigger.event.data.action.startswith('COMPLETE_TASK_') }}"
