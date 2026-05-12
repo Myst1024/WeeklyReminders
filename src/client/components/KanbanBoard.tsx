@@ -7,13 +7,13 @@ import { TaskCard } from "./TaskCard";
 import { Button } from "./ui/button";
 
 const DAYS = [
-	"Sunday",
 	"Monday",
 	"Tuesday",
 	"Wednesday",
 	"Thursday",
 	"Friday",
 	"Saturday",
+	"Sunday",
 ];
 
 interface KanbanBoardProps {
@@ -34,7 +34,7 @@ export function KanbanBoard({
 	isLoading,
 }: KanbanBoardProps) {
 	return (
-		<div className="overflow-x-auto rounded-lg bg-background p-4 shadow-sm">
+		<div className="w-full max-w-[85vw] overflow-x-auto rounded-lg bg-background p-4 shadow-sm">
 			<div className="flex gap-4 min-w-max">
 				{DAYS.map((day, dayIndex) => {
 					const dayItems = items
@@ -56,9 +56,9 @@ export function KanbanBoard({
 
 							<div
 								className={cn(
-									"flex-1 space-y-3 overflow-y-auto p-4",
+									"flex-1 space-y-3 overflow-y-auto p-4 column-texture",
 									dayItems.length === 0 &&
-										"flex items-center justify-center min-h-[300px]",
+										"flex items-center justify-center min-h-[500px]",
 								)}
 							>
 								{dayItems.length === 0 ? (
