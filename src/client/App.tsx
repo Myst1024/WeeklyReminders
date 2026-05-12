@@ -8,12 +8,10 @@ import {
 	deleteItem,
 	fetchItems,
 	toggleComplete,
-	triggerItem,
 	updateItem,
 } from "./api";
 import { KanbanBoard } from "./components/KanbanBoard";
 import { TaskModal } from "./components/TaskModal";
-import { Button } from "./components/ui/button";
 
 function App() {
 	const [items, setItems] = useState<ScheduleItem[]>([]);
@@ -73,36 +71,40 @@ function App() {
 	const handleDeleteTask = async (id: number) => {
 		if (!confirm("Are you sure you want to delete this task?")) return;
 
+		// Store the item in case we need to revert
+		const itemToDelete = items.find((item) => item.id === id);
+
+		// Optimistic update - remove immediately
+		setItems((prevItems) => prevItems.filter((item) => item.id !== id));
+
 		try {
 			await deleteItem(id);
-			await loadData();
 		} catch (err) {
+			// Revert on error
+			if (itemToDelete) {
+				setItems((prevItems) => [...prevItems, itemToDelete]);
+			}
 			setError(err instanceof Error ? err.message : "Failed to delete task");
 		}
 	};
 
-	const handleTriggerTask = async (id: number) => {
-		try {
-			const result = await triggerItem(id);
-			// Reload data to reflect the reset completed state
-			await loadData();
-			if (result.success) {
-				alert("Task triggered successfully!");
-			} else {
-				alert(`Failed to trigger: ${result.message}`);
-			}
-		} catch (err) {
-			alert(
-				`Error triggering task: ${err instanceof Error ? err.message : "Unknown error"}`,
-			);
-		}
-	};
-
 	const handleToggleComplete = async (id: number) => {
+		// Optimistic update - update UI immediately
+		setItems((prevItems) =>
+			prevItems.map((item) =>
+				item.id === id ? { ...item, completed: !item.completed } : item,
+			),
+		);
+
 		try {
 			await toggleComplete(id);
-			await loadData();
 		} catch (err) {
+			// Revert on error
+			setItems((prevItems) =>
+				prevItems.map((item) =>
+					item.id === id ? { ...item, completed: !item.completed } : item,
+				),
+			);
 			setError(
 				err instanceof Error ? err.message : "Failed to toggle completion",
 			);
@@ -115,11 +117,19 @@ function App() {
 		setIsSaving(true);
 		try {
 			if (editingItem) {
-				await updateItem(editingItem.id, item);
+				// Update existing item
+				const updated = await updateItem(editingItem.id, item);
+				setItems((prevItems) =>
+					prevItems.map((i) => (i.id === updated.id ? updated : i)),
+				);
 			} else {
-				await createItem(item);
+				// Create new item
+				const created = await createItem(item);
+				setItems((prevItems) => [...prevItems, created]);
 			}
-			await loadData();
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Failed to save task");
+			throw err; // Re-throw so the modal knows to stay open
 		} finally {
 			setIsSaving(false);
 		}
@@ -137,16 +147,11 @@ function App() {
 			<div className="mx-auto w-full max-w-[90vw]">
 				{/* Header */}
 				<div className="mb-8 rounded-lg bg-card border border-border p-6 shadow-sm">
-					<div className="flex items-center justify-between">
-						<div>
-							<h1 className="text-3xl font-bold text-foreground">
-								📅 Weekly Reminders
-							</h1>
-							<p className={`mt-2 text-sm ${statusColor}`}>{statusText}</p>
-						</div>
-						<Button onClick={loadData} disabled={loading}>
-							{loading ? "Loading..." : "Refresh"}
-						</Button>
+					<div>
+						<h1 className="text-3xl font-bold text-foreground">
+							📅 Weekly Reminders
+						</h1>
+						<p className={`mt-2 text-sm ${statusColor}`}>{statusText}</p>
 					</div>
 				</div>
 
@@ -174,7 +179,6 @@ function App() {
 						onAddTask={handleAddTask}
 						onEditTask={handleEditTask}
 						onDeleteTask={handleDeleteTask}
-						onTriggerTask={handleTriggerTask}
 						onToggleComplete={handleToggleComplete}
 						isLoading={isSaving}
 					/>

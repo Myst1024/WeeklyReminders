@@ -10,7 +10,6 @@ interface TaskCardProps {
 	item: ScheduleItem;
 	onEdit: (item: ScheduleItem) => void;
 	onDelete: (id: number) => void;
-	onTrigger: (id: number) => void;
 	onToggleComplete: (id: number) => void;
 }
 
@@ -28,7 +27,6 @@ export function TaskCard({
 	item,
 	onEdit,
 	onDelete,
-	onTrigger,
 	onToggleComplete,
 }: TaskCardProps) {
 	return (
@@ -67,14 +65,6 @@ export function TaskCard({
 				</button>
 			</div>
 			<div className="flex gap-2">
-				<Button
-					size="sm"
-					variant="default"
-					className="flex-1"
-					onClick={() => onTrigger(item.id)}
-				>
-					Trigger
-				</Button>
 				<Button
 					size="sm"
 					variant="secondary"

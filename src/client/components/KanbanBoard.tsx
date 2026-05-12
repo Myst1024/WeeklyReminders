@@ -26,7 +26,6 @@ interface KanbanBoardProps {
 	onAddTask: (day: number) => void;
 	onEditTask: (item: ScheduleItem) => void;
 	onDeleteTask: (id: number) => void;
-	onTriggerTask: (id: number) => void;
 	onToggleComplete: (id: number) => void;
 	isLoading: boolean;
 }
@@ -36,7 +35,6 @@ export function KanbanBoard({
 	onAddTask,
 	onEditTask,
 	onDeleteTask,
-	onTriggerTask,
 	onToggleComplete,
 	isLoading,
 }: KanbanBoardProps) {
@@ -81,7 +79,6 @@ export function KanbanBoard({
 											item={item}
 											onEdit={onEditTask}
 											onDelete={onDeleteTask}
-											onTrigger={onTriggerTask}
 											onToggleComplete={onToggleComplete}
 										/>
 									))
