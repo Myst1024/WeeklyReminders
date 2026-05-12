@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { Temporal } from "@js-temporal/polyfill";
 import React from "react";
 
 import type { ScheduleItem } from "@/api";
@@ -12,6 +13,16 @@ interface TaskCardProps {
 	onTrigger: (id: number) => void;
 }
 
+function formatTime12Hour(time24: string): string {
+	const [hours, minutes] = time24.split(":").map(Number);
+	const time = Temporal.PlainTime.from({ hour: hours, minute: minutes });
+	return time.toLocaleString("en-US", {
+		hour: "numeric",
+		minute: "2-digit",
+		hour12: true,
+	});
+}
+
 export function TaskCard({ item, onEdit, onDelete, onTrigger }: TaskCardProps) {
 	return (
 		<div
@@ -22,7 +33,7 @@ export function TaskCard({ item, onEdit, onDelete, onTrigger }: TaskCardProps) {
 		>
 			<div className="mb-2 flex items-start justify-between">
 				<div>
-					<div className="text-sm font-medium text-primary">{item.time}</div>
+					<div className="text-sm font-medium text-primary">{formatTime12Hour(item.time)}</div>
 					<div className="text-sm font-semibold text-foreground">
 						{item.title}
 					</div>
@@ -44,7 +55,7 @@ export function TaskCard({ item, onEdit, onDelete, onTrigger }: TaskCardProps) {
 				</Button>
 				<Button
 					size="sm"
-					variant="outline"
+					variant="secondary"
 					className="flex-1"
 					onClick={() => onEdit(item)}
 				>
