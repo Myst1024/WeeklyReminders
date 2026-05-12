@@ -124,12 +124,12 @@ If TrueNAS doesn't have Kubernetes available, you can use Docker:
 
 ```bash
 docker run -d \
-  --name ha-scheduler \
+  --name weekly-reminders \
   --restart unless-stopped \
+  -p 6789:6789 \
   -e HA_URL=http://home-assistant:8123 \
   -e WEBHOOK_ID="<your-webhook-id>" \
-  -e SCHEDULE_TIME="0 8 * * *" \
-  ghcr.io/yourusername/ha-scheduler:main
+  ghcr.io/yourusername/weekly-reminders:main
 ```
 
 ## Configuration for Your Setup
