@@ -26,11 +26,11 @@ COPY package.json bun.lock ./
 # Install dependencies (production only)
 RUN bun install --frozen-lockfile --production
 
+# Copy source code directly
+COPY src ./src
+
 # Copy built client assets from builder
 COPY --from=builder /app/dist ./dist
-
-# Copy source code from builder
-COPY --from=builder /app/src ./src
 
 # Set port environment variable
 ENV PORT=32123
@@ -38,5 +38,5 @@ ENV PORT=32123
 # Expose port 32123
 EXPOSE 32123
 
-# Start the application with explicit path
-CMD ["bun", "run", "/app/src/index.ts"]
+# Start the application
+CMD ["bun", "src/index.ts"]
