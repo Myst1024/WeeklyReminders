@@ -34,7 +34,7 @@ export function KanbanBoard({
 	isLoading,
 }: KanbanBoardProps) {
 	return (
-		<div className="w-full max-w-[85vw] overflow-x-auto rounded-lg bg-background p-4 shadow-sm">
+		<div className="overflow-x-auto rounded-lg bg-background py-4 shadow-sm">
 			<div className="flex gap-4 min-w-max">
 				{DAYS.map((day, dayIndex) => {
 					const dayItems = items

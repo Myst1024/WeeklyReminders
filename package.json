@@ -1,7 +1,7 @@
 {
 	"name": "weekly-reminders",
 	"version": "1.0.0",
-	"description": "Home Assistant scheduler app for TrueNAS",
+	"description": "Weekly Reminders app for TrueNAS",
 	"main": "dist/index.js",
 	"type": "module",
 	"scripts": {

@@ -120,13 +120,13 @@ function App() {
 
 	return (
 		<div className="min-h-screen bg-background p-6">
-			<div className="mx-auto max-w-7xl">
+			<div className="mx-auto w-full max-w-[90vw]">
 				{/* Header */}
 				<div className="mb-8 rounded-lg bg-card border border-border p-6 shadow-sm">
 					<div className="flex items-center justify-between">
 						<div>
 							<h1 className="text-3xl font-bold text-foreground">
-								📅 Home Assistant Scheduler
+							📅 Weekly Reminders
 							</h1>
 							<p className={`mt-2 text-sm ${statusColor}`}>{statusText}</p>
 						</div>

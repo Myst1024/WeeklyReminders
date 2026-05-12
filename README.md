@@ -1,4 +1,4 @@
-# Weekly Reminders - Home Assistant Scheduler
+# Weekly Reminders
 
 A lightweight Bun/TypeScript web application that runs on TrueNAS and provides a kanban-style UI for scheduling Home Assistant automations on a weekly basis.
 

@@ -27,7 +27,7 @@ export function TaskCard({ item, onEdit, onDelete, onTrigger }: TaskCardProps) {
 	return (
 		<div
 			className={cn(
-				"rounded-lg border-l-4 border-primary bg-card p-4 shadow-sm",
+				"rounded-lg border border-primary border-l-4 p-4 shadow-md glass-card transition-all",
 				!item.enabled && "opacity-60",
 			)}
 		>
