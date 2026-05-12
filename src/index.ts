@@ -291,7 +291,6 @@ async function triggerWebhook(item: ScheduleItem): Promise<WebhookResult> {
 					description: item.description,
 					day_of_week: item.day_of_week,
 					time: item.time,
-
 				}),
 				signal: controller.signal,
 			});
