@@ -24,7 +24,15 @@ git push -u origin main
 4. Make sure "Allow GitHub Actions to create and approve pull requests" is checked
 5. Save changes
 
-The GitHub Actions workflow will automatically build and push Docker images to `ghcr.io/yourusername/weekly-reminders`. The Helm chart in this repository tells TrueNAS how to deploy that Docker image.
+The GitHub Actions workflow will automatically build and push Docker images to `ghcr.io/yourusername/repositoryname` (all lowercase). The Helm chart in this repository tells TrueNAS how to deploy that Docker image.
+
+**Note:** GitHub repository names like `Myst1024/WeeklyReminders` are converted to lowercase without special characters: `myst1024/weeklyreminders`
+
+**After your first push:**
+1. Go to your GitHub profile → **Packages**
+2. Find the `weeklyreminders` (or your repository name) package
+3. Click **Package settings** → **Change visibility** → **Public**
+4. This allows TrueNAS to pull the image without authentication
 
 ### 3. Set Up a Webhook in Home Assistant
 
@@ -69,7 +77,8 @@ TrueNAS has a built-in **Kubernetes** container runtime with an **Apps** UI that
 
 1. **Update the Helm chart** with your GitHub username:
    - Edit `helm-chart/values.yaml`
-   - Change `repository: ghcr.io/yourusername/weekly-reminders` to use your actual GitHub username
+   - Change `repository: ghcr.io/myst1024/weeklyreminders` to match your GitHub username and repository
+   - **Important:** Use all lowercase with no hyphens (e.g., `YourName/My-Repo` → `ghcr.io/yourname/myrepo`)
    - Also update `helm-chart/Chart.yaml` with your maintainer info
    - Commit and push these changes
 
