@@ -26,9 +26,6 @@ automation:
               - action: "COMPLETE_TASK_{{ trigger.json.item_id }}"
                 title: "Mark Complete"
                 icon: "sfsymbols:checkmark.circle"
-              - action: "DISMISS_TASK_{{ trigger.json.item_id }}"
-                title: "Dismiss"
-                icon: "sfsymbols:xmark"
             
             # Make notification persistent until acted upon (optional)
             # persistent: true
@@ -68,22 +65,8 @@ automation:
           data:
             tag: "reminder_{{ trigger.event.data.action.replace('COMPLETE_TASK_', '') }}"
 
-  - id: weekly_reminders_dismiss
-    alias: "Weekly Reminders - Handle Dismiss Action"
-    description: "Calls back to WeeklyReminders server when task is dismissed"
-    trigger:
-      - platform: event
-        event_type: mobile_app_notification_action
-        event_data:
-          action: "DISMISS_TASK"  # Will match actions starting with this
-    condition:
-      - condition: template
-        value_template: "{{ trigger.event.data.action.startswith('DISMISS_TASK_') }}"
-    action:
-      - service: rest_command.weekly_reminders_mark_complete
-        data:
-          item_id: >
-            {{ trigger.event.data.action.replace('DISMISS_TA
+# REST command to call back to WeeklyReminders server
+rest_command:
   weekly_reminders_mark_complete:
     url: "{{ trigger.json.callback_url }}"
     method: POST
