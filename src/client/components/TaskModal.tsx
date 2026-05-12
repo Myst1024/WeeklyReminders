@@ -26,6 +26,16 @@ const DAYS = [
 	"Sunday",
 ];
 
+// Convert storage day_of_week (0=Sunday, 1=Monday, etc.) to display index (0=Monday)
+function storageToDisplay(storageDayOfWeek: number): number {
+	return (storageDayOfWeek + 6) % 7;
+}
+
+// Convert display index (0=Monday) to storage day_of_week (0=Sunday, 1=Monday, etc.)
+function displayToStorage(displayIndex: number): number {
+	return (displayIndex + 1) % 7;
+}
+
 interface TaskModalProps {
 	open: boolean;
 	editingItem: ScheduleItem | null;
@@ -54,13 +64,15 @@ export function TaskModal({
 
 	useEffect(() => {
 		if (editingItem) {
-			setDay(editingItem.day_of_week);
+			// Convert storage day_of_week to display index
+			setDay(storageToDisplay(editingItem.day_of_week));
 			setTitle(editingItem.title);
 			setDescription(editingItem.description);
 			setTime(editingItem.time);
 			setEnabled(editingItem.enabled);
 		} else {
-			setDay(defaultDay ?? "");
+			// defaultDay is already in storage format, convert to display
+			setDay(defaultDay !== undefined ? storageToDisplay(defaultDay) : "");
 			setTitle("");
 			setDescription("");
 			setTime("08:00");
@@ -79,8 +91,9 @@ export function TaskModal({
 		}
 
 		try {
+			// Convert display index back to storage day_of_week
 			await onSave({
-				day_of_week: Number(day),
+				day_of_week: displayToStorage(Number(day)),
 				title,
 				description,
 				time,

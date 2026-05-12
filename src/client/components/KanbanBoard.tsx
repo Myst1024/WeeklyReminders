@@ -16,6 +16,11 @@ const DAYS = [
 	"Sunday",
 ];
 
+// Convert display index (0=Monday) to storage day_of_week (0=Sunday, 1=Monday, etc.)
+function displayToStorage(displayIndex: number): number {
+	return (displayIndex + 1) % 7;
+}
+
 interface KanbanBoardProps {
 	items: ScheduleItem[];
 	onAddTask: (day: number) => void;
@@ -38,9 +43,11 @@ export function KanbanBoard({
 	return (
 		<div className="overflow-x-auto rounded-lg bg-background py-4 shadow-sm">
 			<div className="flex gap-4 min-w-max">
-				{DAYS.map((day, dayIndex) => {
+				{DAYS.map((day, displayIndex) => {
+					// Convert display index to storage day_of_week for filtering
+					const storageDayOfWeek = displayToStorage(displayIndex);
 					const dayItems = items
-						.filter((item) => item.day_of_week === dayIndex)
+						.filter((item) => item.day_of_week === storageDayOfWeek)
 						.sort((a, b) => {
 							const aTime = Temporal.PlainTime.from(a.time);
 							const bTime = Temporal.PlainTime.from(b.time);
@@ -84,7 +91,7 @@ export function KanbanBoard({
 							<div className="border-t border-border bg-muted p-3">
 								<Button
 									className="w-full"
-									onClick={() => onAddTask(dayIndex)}
+									onClick={() => onAddTask(storageDayOfWeek)}
 									disabled={isLoading}
 								>
 									+ Add Task

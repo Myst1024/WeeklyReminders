@@ -364,7 +364,7 @@ function startScheduler(): void {
 function checkAndTriggerTasks(): void {
 	try {
 		const now = new Date();
-		const currentDay = now.getDay();
+		const currentDay = now.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
 		const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
 		const data = loadData();
