@@ -90,11 +90,20 @@ TrueNAS SCALE has a built-in **Kubernetes** container runtime. Choose the method
      - `HA_URL` = `http://home-assistant:8123` (or your Home Assistant URL)
      - `WEBHOOK_ID` = `your_webhook_id_here` (from Home Assistant)
 
-5. **Networking:**
-   - Find **Port Forwarding** section
-   - **Container Port**: `32123`
-   - **Node Port**: `32123`
-   - **Protocol**: TCP
+5. **Networking (Host Network - Recommended):**
+   - Find **Networking** section
+   - Enable **Host Network** checkbox
+   - This allows the container to use the host's network directly
+   - App will be accessible at port 32123 on your TrueNAS IP
+   - **Benefit:** Easier to reach Home Assistant if it's on the same network
+   
+   **Alternative - Port Forwarding (if Host Network unavailable):**
+   - If Host Network option isn't available:
+     - Find **Port Forwarding** section
+     - Set **Port Bind Mode**: "Publish port on the host for external access"
+     - **Container Port**: `32123`
+     - **Node Port**: `32123`
+     - **Protocol**: TCP
 
 6. **Storage (REQUIRED):**
    - Find **Host Path Volumes** or **Storage** section
@@ -106,7 +115,9 @@ TrueNAS SCALE has a built-in **Kubernetes** container runtime. Choose the method
 
 7. Click **Install** and wait for deployment
 
-**Access the UI:** `http://truenas-ip:32123`
+**Access the UI:** 
+- With Host Network: `http://truenas-ip:32123`
+- With Port Forwarding: `http://truenas-ip:32123`
 
 #### Option B: Deploy via Helm CLI (Simpler)
 
@@ -211,6 +222,25 @@ In TrueNAS UI:
 
 ## Troubleshooting
 
+### "Failed to deploy app - manifest unknown"
+
+**Error:** `Error manifest unknown` or `manifest for ghcr.io/myst1024/weeklyreminders:main not found`
+
+**Cause:** The Docker image doesn't exist yet because GitHub Actions hasn't built it.
+
+**Fix:**
+1. Go to your GitHub repository → **Actions** tab
+2. Verify "Build and Push Docker Image" workflow ran successfully (green checkmark ✅)
+3. If no workflow ran, push a commit to trigger it:
+   ```bash
+   git add .
+   git commit -m "Trigger build"
+   git push
+   ```
+4. Wait 2-5 minutes for the build to complete
+5. Verify the image exists: GitHub profile → **Packages** → `weeklyreminders`
+6. Retry the TrueNAS deployment
+
 ### "Webhook not triggering"
 
 1. Check the logs for webhook activity:
@@ -249,10 +279,12 @@ In TrueNAS UI:
 
 1. Test locally: `bun src/index.ts`
 2. Push to GitHub (GitHub Actions will automatically build and push the Docker image)
-3. Make sure the ghcr.io package is public (see section 2)
-4. Deploy to TrueNAS using **Option A** (Custom App) or **Option B** (Helm - recommended)
-5. Configure environment variables: `HA_URL` and `WEBHOOK_ID`
-6. **Set up persistent storage** (host path to `/app`)
-7. Configure your Home Assistant webhook automation (see section 3)
-8. Access the UI at `http://truenas-ip:32123`
-9. Create tasks and test the webhook triggers!
+3. **Wait for GitHub Actions to complete** - Go to **Actions** tab and verify build succeeded (green ✅)
+4. Make sure the ghcr.io package is public (see section 2)
+5. **Verify image exists:** GitHub profile → **Packages** → confirm `weeklyreminders` package exists with `main` tag
+6. Deploy to TrueNAS using **Option A** (Custom App) or **Option B** (Helm - recommended)
+7. Configure environment variables: `HA_URL` and `WEBHOOK_ID`
+8. **Set up persistent storage** (host path to `/app`)
+9. Configure your Home Assistant webhook automation (see section 3)
+10. Access the UI at `http://truenas-ip:32123`
+11. Create tasks and test the webhook triggers!

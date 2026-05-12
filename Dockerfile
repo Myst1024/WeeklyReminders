@@ -26,9 +26,11 @@ COPY package.json bun.lock ./
 # Install dependencies (production only)
 RUN bun install --frozen-lockfile --production
 
-# Copy built assets and source from builder
+# Copy built client assets from builder
 COPY --from=builder /app/dist ./dist
-COPY src ./src
+
+# Copy source code from builder (ensures it exists)
+COPY --from=builder /app/src ./src
 
 # Set port environment variable
 ENV PORT=32123
