@@ -38,12 +38,18 @@ export function KanbanBoard({
 	onToggleComplete,
 	isLoading,
 }: KanbanBoardProps) {
+	// Get current day of the week (0=Monday in our display system)
+	const now = Temporal.Now.plainDateISO();
+	const todayDayOfWeek = now.dayOfWeek; // 1=Monday, 7=Sunday in ISO
+	const todayDisplayIndex = todayDayOfWeek === 7 ? 6 : todayDayOfWeek - 1; // Convert to 0=Monday, 6=Sunday
+
 	return (
-		<div className="overflow-x-auto rounded-lg bg-background py-4 shadow-sm">
-			<div className="flex gap-4 min-w-max">
+		<div className="overflow-x-auto rounded-lg bg-background py-8 shadow-sm">
+			<div className="flex gap-4 min-w-max px-2">
 				{DAYS.map((day, displayIndex) => {
 					// Convert display index to storage day_of_week for filtering
 					const storageDayOfWeek = displayToStorage(displayIndex);
+					const isToday = displayIndex === todayDisplayIndex;
 					const dayItems = items
 						.filter((item) => item.day_of_week === storageDayOfWeek)
 						.sort((a, b) => {
@@ -55,10 +61,15 @@ export function KanbanBoard({
 					return (
 						<div
 							key={day}
-							className="flex flex-col flex-shrink-0 w-80 rounded-lg bg-card overflow-hidden border border-border shadow-sm"
+							className={cn(
+								"flex flex-col flex-shrink-0 w-80 rounded-lg bg-card overflow-hidden border border-border shadow-sm transition-all",
+								isToday && "shadow-[0_0_25px_5px_hsl(var(--primary)/0.6)]",
+							)}
 						>
 							<div className="border-b border-border bg-muted px-4 py-3">
-								<h3 className="font-semibold text-foreground">{day}</h3>
+								<h3 className="font-semibold text-foreground">
+									{day}
+								</h3>
 							</div>
 
 							<div
