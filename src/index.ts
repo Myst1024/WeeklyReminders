@@ -4,7 +4,7 @@ import express from "express";
 import type { ScheduleData, ScheduleItem, WebhookResult } from "./types";
 
 const app = express();
-const PORT = process.env.PORT || 6789;
+const PORT = process.env.PORT || 32123;
 const HOME_ASSISTANT_URL = process.env.HA_URL || "http://home-assistant:31013";
 const WEBHOOK_ID = process.env.WEBHOOK_ID || "";
 

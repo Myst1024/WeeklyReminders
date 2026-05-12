@@ -21,8 +21,8 @@ securityContext: {}
 
 service:
   type: NodePort
-  port: 6789
-  targetPort: 6789
+  port: 32123
+  targetPort: 32123
   nodePort: 32123
 
 ingress:

@@ -89,11 +89,10 @@ TrueNAS SCALE has a built-in **Kubernetes** container runtime. Choose the method
    - Scroll down and click **Add** for each variable:
      - `HA_URL` = `http://home-assistant:8123` (or your Home Assistant URL)
      - `WEBHOOK_ID` = `your_webhook_id_here` (from Home Assistant)
-     - `PORT` = `6789`
 
 5. **Networking:**
    - Find **Port Forwarding** section
-   - **Container Port**: `6789`
+   - **Container Port**: `32123`
    - **Node Port**: `32123`
    - **Protocol**: TCP
 

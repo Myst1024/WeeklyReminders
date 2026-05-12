@@ -31,10 +31,10 @@ COPY --from=builder /app/dist ./dist
 COPY src ./src
 
 # Set port environment variable
-ENV PORT=6789
+ENV PORT=32123
 
-# Expose port 6789
-EXPOSE 6789
+# Expose port 32123
+EXPOSE 32123
 
 # Start the application
 CMD ["bun", "src/index.ts"]
