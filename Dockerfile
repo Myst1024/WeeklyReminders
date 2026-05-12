@@ -1,36 +1,16 @@
-# Build stage
-FROM oven/bun:latest as builder
-
-WORKDIR /app
-
-# Copy package files
-COPY package.json bun.lock ./
-
-# Install dependencies
-RUN bun install --frozen-lockfile
-
-# Copy source code
-COPY . .
-
-# Build client
-RUN bun run build:client
-
-# Runtime stage
+# Single-stage build
 FROM oven/bun:latest
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json bun.lock ./
+# Copy all files
+COPY . .
 
-# Install dependencies (production only)
-RUN bun install --frozen-lockfile --production
+# Install dependencies
+RUN bun install --frozen-lockfile
 
-# Copy source code directly
-COPY src ./src
-
-# Copy built client assets from builder
-COPY --from=builder /app/dist ./dist
+# Build client
+RUN bun run build:client
 
 # Set port environment variable
 ENV PORT=32123
@@ -39,4 +19,4 @@ ENV PORT=32123
 EXPOSE 32123
 
 # Start the application
-CMD ["bun", "src/index.ts"]
+CMD ["bun", "run", "src/index.ts"]
