@@ -109,7 +109,7 @@ TrueNAS SCALE has a built-in **Kubernetes** container runtime. Choose the method
    - Find **Host Path Volumes** or **Storage** section
    - Click **Add** to create a new volume:
      - **Host Path**: `/mnt/your-pool/apps/weekly-reminders` (choose a path on your TrueNAS pool)
-     - **Mount Path**: `/app`
+     - **Mount Path**: `/app/data`
      - **Read Only**: Uncheck (must be read-write)
    - This persists your `schedule.json` data across container restarts
 
@@ -284,7 +284,7 @@ In TrueNAS UI:
 5. **Verify image exists:** GitHub profile → **Packages** → confirm `weeklyreminders` package exists with `main` tag
 6. Deploy to TrueNAS using **Option A** (Custom App) or **Option B** (Helm - recommended)
 7. Configure environment variables: `HA_URL` and `WEBHOOK_ID`
-8. **Set up persistent storage** (host path to `/app`)
+8. **Set up persistent storage** (host path to `/app/data`)
 9. Configure your Home Assistant webhook automation (see section 3)
 10. Access the UI at `http://truenas-ip:32123`
 11. Create tasks and test the webhook triggers!

@@ -8,11 +8,16 @@ const PORT = process.env.PORT || 32123;
 const HOME_ASSISTANT_URL = process.env.HA_URL || "http://home-assistant:31013";
 const WEBHOOK_ID = process.env.WEBHOOK_ID || "";
 
-// Data storage
-const dbPath = path.join(process.cwd(), "schedule.json");
+// Data storage - use /app/data for persistence
+const dataDir = process.env.DATA_DIR || "/app/data";
+const dbPath = path.join(dataDir, "schedule.json");
 
 // Initialize data file
 function initializeData(): void {
+	// Ensure data directory exists
+	if (!fs.existsSync(dataDir)) {
+		fs.mkdirSync(dataDir, { recursive: true });
+	}
 	if (!fs.existsSync(dbPath)) {
 		const data: ScheduleData = { items: [], nextId: 1 };
 		fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));

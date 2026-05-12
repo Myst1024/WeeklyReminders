@@ -34,7 +34,7 @@ persistence:
   storageClass: ""  # Use default storage class
   accessMode: ReadWriteOnce
   size: 1Gi
-  mountPath: /app
+  mountPath: /app/data
 
 resources:
   limits:

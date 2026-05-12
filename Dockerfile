@@ -12,6 +12,9 @@ RUN bun install --frozen-lockfile
 # Build client
 RUN bun run build:client
 
+# Create data directory for persistent storage
+RUN mkdir -p /app/data
+
 # Set port environment variable
 ENV PORT=32123
 
