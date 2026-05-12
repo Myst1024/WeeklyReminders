@@ -1,0 +1,19 @@
+apiVersion: v2
+name: weekly-reminders
+description: Home Assistant scheduler app for TrueNAS
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+
+maintainers:
+  - name: gunnar carlson
+    email: gunnar.carlson@gmail.com
+
+home: https://github.com/Myst1024/WeeklyReminders
+sources:
+  - https://github.com/Myst1024/WeeklyReminders
+
+keywords:
+  - truenas
+  - home-assistant
+  - scheduler

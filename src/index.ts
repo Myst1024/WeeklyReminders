@@ -1,16 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import express from "express";
-import type {
-	HealthStatus,
-	ScheduleData,
-	ScheduleItem,
-	WebhookResult,
-} from "./types";
+import type { ScheduleData, ScheduleItem, WebhookResult } from "./types";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-const HOME_ASSISTANT_URL = process.env.HA_URL || "http://home-assistant:8123";
+const PORT = process.env.PORT || 6789;
+const HOME_ASSISTANT_URL = process.env.HA_URL || "http://home-assistant:31013";
 const WEBHOOK_ID = process.env.WEBHOOK_ID || "";
 
 // Data storage

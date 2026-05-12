@@ -1,0 +1,55 @@
+replicaCount: 1
+image:
+  repository: ghcr.io/Myst1024/weekly-reminders
+  pullPolicy: IfNotPresent
+  tag: "main"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: NodePort
+  port: 6789
+  targetPort: 6789
+  nodePort: 6789
+
+ingress:
+  enabled: false
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Environment variables
+env:
+  HA_URL: "http://home-assistant:31913"
+  # WEBHOOK_ID should be set during deployment via TrueNAS UI
+  WEBHOOK_ID: ""
+
+# For sensitive values, use secrets instead
+envFromSecret: {}

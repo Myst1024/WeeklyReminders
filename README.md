@@ -94,7 +94,7 @@ Now the scheduler will automatically trigger this automation at the times you se
 
 1. **Add the Helm Repository**:
    ```bash
-   helm repo add weekly-reminders https://yourusername.github.io/weekly-reminders
+   helm repo add weekly-reminders https://Myst1024.github.io/WeeklyReminders
    helm repo update
    ```
 
