@@ -364,6 +364,7 @@ function checkAndTriggerTasks(): void {
 		const now = new Date();
 		const currentDay = now.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
 		const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+		const currentDate = now.toISOString().slice(0, 10);
 
 		const data = loadData();
 		const items = data.items.filter(
@@ -371,7 +372,8 @@ function checkAndTriggerTasks(): void {
 		);
 
 		for (const item of items) {
-			const itemKey = `item_${item.id}_${item.time}`;
+			// Scope de-duplication to a calendar date so recurring weekly tasks run again.
+			const itemKey = `item_${item.id}_${item.time}_${currentDate}`;
 
 			// Only trigger once per scheduled time
 			if (lastChecked[item.id] !== itemKey && item.time === currentTime) {
