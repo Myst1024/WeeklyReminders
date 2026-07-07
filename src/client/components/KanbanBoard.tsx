@@ -67,9 +67,7 @@ export function KanbanBoard({
 							)}
 						>
 							<div className="border-b border-border bg-muted px-4 py-3">
-								<h3 className="font-semibold text-foreground">
-									{day}
-								</h3>
+								<h3 className="font-semibold text-foreground">{day}</h3>
 							</div>
 
 							<div

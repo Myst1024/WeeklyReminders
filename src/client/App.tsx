@@ -1,17 +1,22 @@
 import { useEffect, useState } from "react";
 
 import {
+	type ActivityLogEntry,
 	type HealthStatus,
 	type ScheduleItem,
 	checkHealth,
 	createItem,
 	deleteItem,
+	fetchActivityLog,
 	fetchItems,
 	toggleComplete,
 	updateItem,
 } from "./api";
+import { ActivityLog } from "./components/ActivityLog";
 import { KanbanBoard } from "./components/KanbanBoard";
 import { TaskModal } from "./components/TaskModal";
+
+type ViewMode = "board" | "history";
 
 function App() {
 	const [items, setItems] = useState<ScheduleItem[]>([]);
@@ -21,10 +26,24 @@ function App() {
 	const [defaultDay, setDefaultDay] = useState<number | undefined>();
 	const [health, setHealth] = useState<HealthStatus | null>(null);
 	const [error, setError] = useState<string>("");
+	const [logError, setLogError] = useState<string>("");
 	const [isSaving, setIsSaving] = useState(false);
+	const [viewMode, setViewMode] = useState<ViewMode>("board");
+	const [activityLog, setActivityLog] = useState<ActivityLogEntry[]>([]);
+	const [isLogLoading, setIsLogLoading] = useState(false);
 
 	useEffect(() => {
 		document.documentElement.classList.add("dark");
+	}, []);
+
+	useEffect(() => {
+		const setModeFromHash = () => {
+			setViewMode(window.location.hash === "#/history" ? "history" : "board");
+		};
+
+		setModeFromHash();
+		window.addEventListener("hashchange", setModeFromHash);
+		return () => window.removeEventListener("hashchange", setModeFromHash);
 	}, []);
 
 	useEffect(() => {
@@ -33,6 +52,12 @@ function App() {
 		const healthInterval = setInterval(checkHealthStatus, 10000);
 		return () => clearInterval(healthInterval);
 	}, []);
+
+	useEffect(() => {
+		if (viewMode === "history") {
+			loadActivityLog();
+		}
+	}, [viewMode]);
 
 	const loadData = async () => {
 		try {
@@ -54,6 +79,25 @@ function App() {
 		} catch (err) {
 			setHealth(null);
 		}
+	};
+
+	const loadActivityLog = async () => {
+		try {
+			setIsLogLoading(true);
+			const entries = await fetchActivityLog();
+			setActivityLog(entries);
+			setLogError("");
+		} catch (err) {
+			setLogError(
+				err instanceof Error ? err.message : "Failed to load activity log",
+			);
+		} finally {
+			setIsLogLoading(false);
+		}
+	};
+
+	const navigateTo = (mode: ViewMode) => {
+		window.location.hash = mode === "history" ? "/history" : "/";
 	};
 
 	const handleAddTask = (day: number) => {
@@ -147,11 +191,25 @@ function App() {
 			<div className="mx-auto w-full max-w-[90vw]">
 				{/* Header */}
 				<div className="mb-3 rounded-lg bg-card border border-border p-6 shadow-sm">
-					<div>
-						<h1 className="text-3xl font-bold text-foreground">
-							📅 Weekly Reminders
-						</h1>
-						<p className={`mt-2 text-sm ${statusColor}`}>{statusText}</p>
+					<div className="flex items-start justify-between gap-4">
+						<div>
+							<h1 className="text-3xl font-bold text-foreground">
+								📅 Weekly Reminders
+							</h1>
+							<p className={`mt-2 text-sm ${statusColor}`}>{statusText}</p>
+						</div>
+						<a
+							href={viewMode === "history" ? "#/" : "#/history"}
+							onClick={(e) => {
+								e.preventDefault();
+								navigateTo(viewMode === "history" ? "board" : "history");
+							}}
+							className="text-sm font-medium text-primary hover:underline"
+						>
+							{viewMode === "history"
+								? "Back to Reminders"
+								: "View Activity Log"}
+						</a>
 					</div>
 				</div>
 
@@ -163,7 +221,7 @@ function App() {
 				)}
 
 				{/* Loading State */}
-				{loading && (
+				{loading && viewMode === "board" && (
 					<div className="flex items-center justify-center rounded-lg bg-card border border-border p-12 shadow-sm">
 						<div className="text-center">
 							<div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-muted border-t-primary mx-auto" />
@@ -173,7 +231,7 @@ function App() {
 				)}
 
 				{/* Kanban Board */}
-				{!loading && (
+				{!loading && viewMode === "board" && (
 					<KanbanBoard
 						items={items}
 						onAddTask={handleAddTask}
@@ -181,6 +239,15 @@ function App() {
 						onDeleteTask={handleDeleteTask}
 						onToggleComplete={handleToggleComplete}
 						isLoading={isSaving}
+					/>
+				)}
+
+				{viewMode === "history" && (
+					<ActivityLog
+						entries={activityLog}
+						isLoading={isLogLoading}
+						error={logError}
+						onRefresh={loadActivityLog}
 					/>
 				)}
 

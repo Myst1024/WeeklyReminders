@@ -1,7 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
 import express from "express";
-import type { ScheduleData, ScheduleItem, WebhookResult } from "./types";
+import type {
+	ActivityLogEntry,
+	ScheduleData,
+	ScheduleItem,
+	WebhookResult,
+} from "./types";
 
 const app = express();
 const PORT = process.env.PORT || 32123;
@@ -14,6 +19,7 @@ const SERVER_URL = process.env.SERVER_URL || `http://localhost:${PORT}`;
 // Data storage - use /app/data for persistence
 const dataDir = process.env.DATA_DIR || "/app/data";
 const dbPath = path.join(dataDir, "schedule.json");
+const logPath = path.join(dataDir, "activity-log.json");
 
 // Initialize data file
 function initializeData(): void {
@@ -24,6 +30,12 @@ function initializeData(): void {
 	if (!fs.existsSync(dbPath)) {
 		const data: ScheduleData = { items: [], nextId: 1 };
 		fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+	}
+	if (!fs.existsSync(logPath)) {
+		fs.writeFileSync(
+			logPath,
+			JSON.stringify({ entries: [], nextId: 1 }, null, 2),
+		);
 	}
 }
 
@@ -47,6 +59,52 @@ function loadData(): ScheduleData {
 // Save data to file
 function saveData(data: ScheduleData): void {
 	fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+}
+
+interface ActivityLogData {
+	entries: ActivityLogEntry[];
+	nextId: number;
+}
+
+function loadActivityLog(): ActivityLogData {
+	try {
+		const raw = fs.readFileSync(logPath, "utf-8");
+		const parsed = JSON.parse(raw) as ActivityLogData;
+		if (!Array.isArray(parsed.entries) || typeof parsed.nextId !== "number") {
+			return { entries: [], nextId: 1 };
+		}
+		return parsed;
+	} catch {
+		return { entries: [], nextId: 1 };
+	}
+}
+
+function saveActivityLog(data: ActivityLogData): void {
+	fs.writeFileSync(logPath, JSON.stringify(data, null, 2));
+}
+
+function appendActivityLog(
+	event: ActivityLogEntry["event"],
+	item: Pick<ScheduleItem, "id" | "title" | "completed">,
+	notes?: string,
+): void {
+	const data = loadActivityLog();
+	const entry: ActivityLogEntry = {
+		id: data.nextId,
+		timestamp: new Date().toISOString(),
+		event,
+		item_id: item.id,
+		title: item.title,
+		completed: item.completed,
+		notes,
+	};
+
+	data.entries.push(entry);
+	data.nextId += 1;
+	if (data.entries.length > 5000) {
+		data.entries = data.entries.slice(-5000);
+	}
+	saveActivityLog(data);
 }
 
 // Middleware
@@ -115,6 +173,7 @@ app.post("/api/items", (req, res) => {
 		data.items.push(newItem);
 		data.nextId++;
 		saveData(data);
+		appendActivityLog("created", newItem);
 
 		res.status(201).json(newItem);
 	} catch (error) {
@@ -138,6 +197,7 @@ app.put("/api/items/:id", (req, res) => {
 		}
 
 		const existing = data.items[itemIndex];
+		const previous = { ...existing };
 
 		// Update fields
 		if (day_of_week !== undefined) existing.day_of_week = day_of_week;
@@ -149,6 +209,11 @@ app.put("/api/items/:id", (req, res) => {
 		existing.updated_at = new Date().toISOString();
 
 		saveData(data);
+		appendActivityLog(
+			"edited",
+			existing,
+			`Updated fields on task ${id}; previously completed=${previous.completed}`,
+		);
 		res.json(existing);
 	} catch (error) {
 		console.error("Error updating item:", error);
@@ -162,6 +227,7 @@ app.delete("/api/items/:id", (req, res) => {
 		const id = Number.parseInt(req.params.id);
 		const data = loadData();
 		const initialLength = data.items.length;
+		const itemToDelete = data.items.find((item) => item.id === id);
 
 		data.items = data.items.filter((item) => item.id !== id);
 
@@ -170,6 +236,13 @@ app.delete("/api/items/:id", (req, res) => {
 		}
 
 		saveData(data);
+		if (itemToDelete) {
+			appendActivityLog(
+				"deleted",
+				itemToDelete,
+				`Deleted task with completed=${itemToDelete.completed}`,
+			);
+		}
 		res.json({ success: true });
 	} catch (error) {
 		console.error("Error deleting item:", error);
@@ -216,6 +289,11 @@ app.post("/api/items/:id/toggle-complete", async (req, res) => {
 		item.completed = !item.completed;
 		item.updated_at = new Date().toISOString();
 		saveData(data);
+		appendActivityLog(
+			"completion_changed",
+			item,
+			item.completed ? "Marked as completed" : "Marked as not completed",
+		);
 
 		console.log(
 			`[${new Date().toISOString()}] Task ${id} completion toggled to ${item.completed}: ${item.title}`,
@@ -247,6 +325,7 @@ app.post("/api/callback/complete/:id", async (req, res) => {
 		item.completed = true;
 		item.updated_at = new Date().toISOString();
 		saveData(data);
+		appendActivityLog("completion_changed", item, "Completed via callback");
 
 		console.log(
 			`[${new Date().toISOString()}] Task ${id} marked as complete: ${item.title}`,
@@ -310,6 +389,11 @@ async function triggerWebhook(item: ScheduleItem): Promise<WebhookResult> {
 
 			console.log(
 				`[${new Date().toISOString()}] Successfully triggered: ${item.title}`,
+			);
+			appendActivityLog(
+				"reminder_sent",
+				item,
+				"Webhook accepted by Home Assistant",
 			);
 			return {
 				success: true,
@@ -399,6 +483,16 @@ app.get("/api/health", (_req, res) => {
 		database: "connected",
 		webhook_id_configured: !!WEBHOOK_ID,
 	});
+});
+
+app.get("/api/logs", (_req, res) => {
+	try {
+		const data = loadActivityLog();
+		res.json(data.entries.slice().reverse());
+	} catch (error) {
+		console.error("Error fetching activity log:", error);
+		res.status(500).json({ error: "Failed to fetch activity log" });
+	}
 });
 
 // 404 handler - serve index.html for SPA

@@ -1,6 +1,13 @@
-import type { HealthStatus, ScheduleItem, WebhookResult } from "../types";
+import type {
+	ActivityLogEntry,
+	HealthStatus,
+	ScheduleItem,
+	WebhookResult,
+} from "../types";
 
 export type { HealthStatus, ScheduleItem };
+
+export type { ActivityLogEntry };
 
 export async function fetchItems(): Promise<ScheduleItem[]> {
 	const response = await fetch("/api/items");
@@ -71,5 +78,11 @@ export async function toggleComplete(id: number): Promise<ScheduleItem> {
 export async function checkHealth(): Promise<HealthStatus> {
 	const response = await fetch("/api/health");
 	if (!response.ok) throw new Error("Failed to check health");
+	return response.json();
+}
+
+export async function fetchActivityLog(): Promise<ActivityLogEntry[]> {
+	const response = await fetch("/api/logs");
+	if (!response.ok) throw new Error("Failed to fetch activity log");
 	return response.json();
 }

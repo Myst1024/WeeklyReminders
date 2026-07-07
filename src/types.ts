@@ -29,3 +29,18 @@ export interface WebhookResult {
 	success: boolean;
 	message: string;
 }
+
+export interface ActivityLogEntry {
+	id: number;
+	timestamp: string;
+	event:
+		| "created"
+		| "edited"
+		| "deleted"
+		| "completion_changed"
+		| "reminder_sent";
+	item_id: number;
+	title: string;
+	completed: boolean;
+	notes?: string;
+}
